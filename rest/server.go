@@ -1,13 +1,23 @@
-package servego
+package rest
 
 import (
-	"ecommerce/middleware"
-	"ecommerce/routes"
+	"ecommerce/rest/middleware"
+	"ecommerce/rest/routes"
 	"fmt"
 	"net/http"
+	"os"
+
+	"github.com/joho/godotenv"
 )
 
-func ServeGo() {
+func Start() {
+	errs := godotenv.Load()
+	if errs != nil {
+		panic(errs)
+	}
+
+	fmt.Println(os.Getenv("PORT"))
+	fmt.Println(os.Getenv("DB_NAME"))
 
 	setMiddleware := middleware.NewMiddlewareManager()
 
@@ -19,9 +29,9 @@ func ServeGo() {
 
 	muxWraped := setMiddleware.Apply(mux)
 
-	fmt.Println("server running on :3000")
+	fmt.Println("server running on " + os.Getenv("PORT"))
 
-	err := http.ListenAndServe(":3000", muxWraped)
+	err := http.ListenAndServe(":"+os.Getenv("PORT"), muxWraped)
 
 	if err != nil {
 		fmt.Println(err, "error from server ")

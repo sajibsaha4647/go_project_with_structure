@@ -1,8 +1,8 @@
 package routes
 
 import (
-	controller "ecommerce/Controller"
-	"ecommerce/middleware"
+	"ecommerce/rest/controller"
+	"ecommerce/rest/middleware"
 	"net/http"
 )
 

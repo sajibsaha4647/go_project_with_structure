@@ -18,7 +18,7 @@ func AboutHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "i am software engineer")
 }
 
-var productList []model.ProductList
+
 
 func GetProduct(w http.ResponseWriter, r *http.Request) {
 	utils.HandelCors(w)
@@ -33,7 +33,7 @@ func GetProduct(w http.ResponseWriter, r *http.Request) {
 	response := model.Response{
 		Message: "Data fetch successfully",
 		Status:  http.StatusOK,
-		Data:    productList,
+		Data:    model.GetAllProducts(),
 	}
 
 	utils.SendResponse(w, response)
@@ -57,8 +57,8 @@ func CreateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newProduct.Id = len(productList) + 1
-	productList = append(productList, newProduct)
+	newProduct.Id = len(model.GetAllProducts()) + 1
+	model.Store(newProduct)
 
 	w.WriteHeader(http.StatusCreated)
 
@@ -80,7 +80,7 @@ func GetProductById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for _, product := range productList {
+	for _, product := range model.GetAllProducts() {
 
 		if id == product.Id {
 
@@ -107,11 +107,3 @@ func GetProductById(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("checking here id", id)
 }
 
-func init() {
-	productList = append(productList, []model.ProductList{
-		{Id: 1, Title: "Orange", Description: "This was good", Price: "56", ImageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Oranges_-_whole-halved-segment.jpg/500px-Oranges_-_whole-halved-segment.jpg"},
-		{Id: 2, Title: "Orange2", Description: "This was good", Price: "56", ImageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Oranges_-_whole-halved-segment.jpg/500px-Oranges_-_whole-halved-segment.jpg"},
-		{Id: 3, Title: "Orange3", Description: "This was good", Price: "56", ImageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Oranges_-_whole-halved-segment.jpg/500px-Oranges_-_whole-halved-segment.jpg"},
-		{Id: 4, Title: "Orange4", Description: "This was good", Price: "56", ImageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Oranges_-_whole-halved-segment.jpg/500px-Oranges_-_whole-halved-segment.jpg"},
-	}...)
-}
