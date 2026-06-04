@@ -10,7 +10,8 @@ func SetRoutes(mux *http.ServeMux, mm *middleware.MiddlewareManager) {
 
 	// Define Product routes here
 	mux.Handle("GET /hellow", mm.Apply(http.HandlerFunc(controller.HellowHandler)))
-	mux.Handle("GET /getProduct", mm.Apply(http.HandlerFunc(controller.GetProduct)))
+	
+	mux.Handle("GET /getProduct", mm.Apply(middleware.AuthenticationMiddleware(controller.GetProduct)))
 	mux.Handle("POST /createProduct", mm.Apply(http.HandlerFunc(controller.CreateProduct)))
 	mux.Handle("GET /getProduct/{id}", mm.Apply(http.HandlerFunc(controller.GetProductById)))
 	mux.Handle("PUT /updatedProduct/{id}", mm.Apply(http.HandlerFunc(controller.UpdateProductById)))

@@ -19,6 +19,7 @@ func AboutHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetProduct(w http.ResponseWriter, r *http.Request) {
+
 	utils.HandelCors(w)
 	if r.Method != "GET" {
 		http.Error(w, "Please go with get method", 400)

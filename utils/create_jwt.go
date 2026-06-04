@@ -25,7 +25,7 @@ type Signature struct {
 	Signature string `json:"signature"`
 }
 
-func CreateJWT( payload Payload) (string, error) {
+func CreateJWT(secret string, payload Payload) (string, error) {
 	// In a real implementation, you would use a library to create a JWT token
 	// Here we are just simulating the process for demonstration purposes
 
@@ -49,7 +49,7 @@ func CreateJWT( payload Payload) (string, error) {
 
 	message := headerBase64 + "." + payloadBase64 
 
-	secret := "my_secret_key"
+	
 	signatureByteArray := []byte(secret)
 	bytesMessage := []byte(message)
 

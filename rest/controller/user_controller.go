@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 )
@@ -41,7 +42,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	user := model.FindUserByEmail(userLogin.Email)
 
-	token, _ := utils.CreateJWT(utils.Payload{
+	token, _ := utils.CreateJWT(os.Getenv("JWT_SECRET"), utils.Payload{
 		Sub:      strconv.Itoa(user.Id),
 		Name:     user.Name,
 		Email:    user.Email,
