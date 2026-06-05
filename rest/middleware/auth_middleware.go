@@ -6,63 +6,62 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 )
 
-func AuthenticationMiddleware(next http.HandlerFunc) http.HandlerFunc {
+func AuthenticationMiddleware(jwtSecret string, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		
-	header := r.Header.Get("Authorization")
 
-	if header == "" {
-		http.Error(w, "Authorization header is missing", http.StatusUnauthorized)
-		return
-	}
+		header := r.Header.Get("Authorization")
 
-	headerArray := strings.Split(header, " ")
+		if header == "" {
+			http.Error(w, "Authorization header is missing", http.StatusUnauthorized)
+			return
+		}
 
-	if len(headerArray) != 2 || headerArray[0] != "Bearer" {
-		http.Error(w, "Invalid Authorization header format", http.StatusUnauthorized)
-		return
-	}
+		headerArray := strings.Split(header, " ")
 
-	accessToken := headerArray[1]
+		if len(headerArray) != 2 || headerArray[0] != "Bearer" {
+			http.Error(w, "Invalid Authorization header format", http.StatusUnauthorized)
+			return
+		}
 
-	fmt.Println("Access Token:", accessToken)
-	tokenParts := strings.Split(accessToken, ".")
+		accessToken := headerArray[1]
 
-	if len(tokenParts) != 3 {
-		http.Error(w, "Invalid JWT token format", http.StatusUnauthorized)
-		return
-	}
+		fmt.Println("Access Token:", accessToken)
+		tokenParts := strings.Split(accessToken, ".")
 
-	jwtHeader := tokenParts[0]
-	jwtPayload := tokenParts[1]
-	jwtSignature := tokenParts[2]
+		if len(tokenParts) != 3 {
+			http.Error(w, "Invalid JWT token format", http.StatusUnauthorized)
+			return
+		}
 
-	fmt.Println("JWT Header:", jwtHeader)
-	fmt.Println("JWT Payload:", jwtPayload)
-	fmt.Println("JWT Signature:", jwtSignature)
+		jwtHeader := tokenParts[0]
+		jwtPayload := tokenParts[1]
+		jwtSignature := tokenParts[2]
 
-	message := jwtHeader + "." + jwtPayload
+		fmt.Println("JWT Header:", jwtHeader)
+		fmt.Println("JWT Payload:", jwtPayload)
+		fmt.Println("JWT Signature:", jwtSignature)
 
-	fmt.Println("Message to verify:", message)
+		message := jwtHeader + "." + jwtPayload
 
-	biteArraySecret := []byte(os.Getenv("JWT_SECRET"))
-	biteArrayMessage := []byte(message)
+		fmt.Println("Message to verify:", message)
 
-	h := hmac.New(sha256.New, biteArraySecret)
-	h.Write(biteArrayMessage)
+		biteArraySecret := []byte(jwtSecret)
+		biteArrayMessage := []byte(message)
 
-	expectedSignature := h.Sum(nil)
+		h := hmac.New(sha256.New, biteArraySecret)
+		h.Write(biteArrayMessage)
 
-	base64Signature := createBase64Encode(expectedSignature)
+		expectedSignature := h.Sum(nil)
 
-	if base64Signature != jwtSignature {
-		http.Error(w, "Invalid JWT token signature", http.StatusUnauthorized)
-		return
-	}
+		base64Signature := createBase64Encode(expectedSignature)
+
+		if base64Signature != jwtSignature {
+			http.Error(w, "Invalid JWT token signature", http.StatusUnauthorized)
+			return
+		}
 		next.ServeHTTP(w, r)
 	}
 }

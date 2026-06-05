@@ -1,37 +1,39 @@
 package rest
 
 import (
+	"ecommerce/config"
 	"ecommerce/rest/controller/product"
+	"ecommerce/rest/controller/review"
 	"ecommerce/rest/controller/user"
 	"ecommerce/rest/middleware"
 	"fmt"
 	"net/http"
-	"os"
-
-	"github.com/joho/godotenv"
 )
 
 type Server struct {
 	userHandler    *user.Handler
 	productHandler *product.Handler
+	reviewHandler  *review.Handler
 }
 
 func NewServer(userHandler *user.Handler,
-	productHandler *product.Handler) *Server {
+	productHandler *product.Handler,
+	reviewHandler *review.Handler) *Server {
 	return &Server{
 		userHandler:    userHandler,
 		productHandler: productHandler,
+		reviewHandler:  reviewHandler,
 	}
 }
 
 func (s *Server) Start() {
-	errs := godotenv.Load()
+	cfg, errs := config.Load()
 	if errs != nil {
 		panic(errs)
 	}
 
-	fmt.Println(os.Getenv("PORT"))
-	fmt.Println(os.Getenv("DB_NAME"))
+	fmt.Println(cfg.Port)
+	fmt.Println(cfg.JWTSecret)
 
 	setMiddleware := middleware.NewMiddlewareManager()
 
@@ -40,15 +42,16 @@ func (s *Server) Start() {
 	mux := http.NewServeMux()
 
 	s.userHandler.SetRoutesUser(mux, setMiddleware)
-	s.productHandler.SetRoutesProduct(mux, setMiddleware)
+	s.productHandler.SetRoutesProduct(cfg, mux, setMiddleware)
+	s.reviewHandler.ReviewRoutes(mux, setMiddleware)
 
 	// routes.SetRoutes(mux, setMiddleware)
 
 	muxWraped := setMiddleware.Apply(mux)
 
-	fmt.Println("server running on " + os.Getenv("PORT"))
+	fmt.Println("server running on " + cfg.Port)
 
-	err := http.ListenAndServe(":"+os.Getenv("PORT"), muxWraped)
+	err := http.ListenAndServe(":"+cfg.Port, muxWraped)
 
 	if err != nil {
 		fmt.Println(err, "error from server ")
