@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func (h *handler) SetRoutesProduct(mux *http.ServeMux, mm *middleware.MiddlewareManager) {
+func (h *Handler) SetRoutesProduct(mux *http.ServeMux, mm *middleware.MiddlewareManager) {
 
 	// Define Product routes here
 	mux.Handle("GET /hellow", mm.Apply(http.HandlerFunc(h.HellowHandler)))

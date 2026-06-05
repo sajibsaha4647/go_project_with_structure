@@ -1,7 +1,7 @@
 package product
 
-type handler struct {}
+type Handler struct {}
 
-func NewHandler() *handler {
-	return &handler{}
+func NewHandler() *Handler {
+	return &Handler{}
 }

@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func LoginHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	utils.HandelCors(w)
 	if r.Method != "POST" {
 		http.Error(w, "Please go with post method", 400)
@@ -59,7 +59,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	utils.SendResponse(w, response)
 }
 
-func GetUser(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
 	utils.HandelCors(w)
 	if r.Method != "GET" {
 		http.Error(w, "Please go with get method", 400)
@@ -77,7 +77,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func CreateUser(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	utils.HandelCors(w)
 	if r.Method != "POST" {
 		http.Error(w, "Please go with post method", 400)
@@ -103,7 +103,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func GetUserById(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetUserById(w http.ResponseWriter, r *http.Request) {
 	utils.HandelCors(w)
 	if r.Method != "GET" {
 		http.Error(w, "Please go with get method", 400)
@@ -132,7 +132,7 @@ func GetUserById(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func UpdateUser(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	utils.HandelCors(w)
 	if r.Method != "PUT" {
 		http.Error(w, "Please go with put method", 400)
@@ -165,7 +165,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func DeleteUser(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	utils.HandelCors(w)
 	if r.Method != "DELETE" {
 		http.Error(w, "Please go with delete method", 400)

@@ -1,8 +1,9 @@
 package rest
 
 import (
+	"ecommerce/rest/controller/product"
+	"ecommerce/rest/controller/user"
 	"ecommerce/rest/middleware"
-	"ecommerce/rest/routes"
 	"fmt"
 	"net/http"
 	"os"
@@ -10,7 +11,20 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func Start() {
+type Server struct {
+	userHandler    *user.Handler
+	productHandler *product.Handler
+}
+
+func NewServer(userHandler *user.Handler,
+	productHandler *product.Handler) *Server {
+	return &Server{
+		userHandler:    userHandler,
+		productHandler: productHandler,
+	}
+}
+
+func (s *Server) Start() {
 	errs := godotenv.Load()
 	if errs != nil {
 		panic(errs)
@@ -25,7 +39,10 @@ func Start() {
 
 	mux := http.NewServeMux()
 
-	routes.SetRoutes(mux, setMiddleware)
+	s.userHandler.SetRoutesUser(mux, setMiddleware)
+	s.productHandler.SetRoutesProduct(mux, setMiddleware)
+
+	// routes.SetRoutes(mux, setMiddleware)
 
 	muxWraped := setMiddleware.Apply(mux)
 

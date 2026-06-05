@@ -10,15 +10,15 @@ import (
 	"ecommerce/utils"
 )
 
-func (h *handler) HellowHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) HellowHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "This was first step")
 }
 
-func (h *handler) AboutHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) AboutHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "i am software engineer")
 }
 
-func (h *handler) GetProduct(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetProduct(w http.ResponseWriter, r *http.Request) {
 
 	utils.HandelCors(w)
 	if r.Method != "GET" {
@@ -38,7 +38,7 @@ func (h *handler) GetProduct(w http.ResponseWriter, r *http.Request) {
 	utils.SendResponse(w, response)
 }
 
-func (h *handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	utils.HandelCors(w)
 	if r.Method != "POST" {
 		http.Error(w, "Please go with post method", 400)
@@ -69,7 +69,7 @@ func (h *handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	utils.SendResponse(w, response)
 }
 
-func (h *handler) GetProductById(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetProductById(w http.ResponseWriter, r *http.Request) {
 
 	productid := r.PathValue("id")
 
@@ -106,7 +106,7 @@ func (h *handler) GetProductById(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("checking here id", id)
 }
 
-func (h *handler) UpdateProductById(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) UpdateProductById(w http.ResponseWriter, r *http.Request) {
 	utils.HandelCors(w)
 	if r.Method != "PUT" {
 		http.Error(w, "Please go with put method", 400)
@@ -155,7 +155,7 @@ func (h *handler) UpdateProductById(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (h *handler)	 DeleteProductById(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) DeleteProductById(w http.ResponseWriter, r *http.Request) {
 	utils.HandelCors(w)
 	if r.Method != "DELETE" {
 		http.Error(w, "Please go with delete method", 400)
