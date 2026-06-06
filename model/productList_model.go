@@ -40,7 +40,7 @@ func UpdateProductById(id int, updatedProduct ProductList) ProductList {
 
 func DeleteProductById(id int) bool {
 	for i, product := range productList {
-		if id == product.Id {	
+		if id == product.Id {
 			productList = append(productList[:i], productList[i+1:]...)
 			return true
 		}
