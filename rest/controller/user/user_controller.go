@@ -2,6 +2,7 @@ package user
 
 import (
 	"ecommerce/model"
+	"ecommerce/repo"
 	"ecommerce/utils"
 	"encoding/json"
 	"fmt"
@@ -25,7 +26,7 @@ func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	isValid := model.ValidateLogin(userLogin)
+	isValid := repo.NewLoginRepo().ValidateLogin(userLogin)
 	fmt.Println("Login attempt for email:", userLogin.Email, "Valid:", isValid)
 	if !isValid {
 		response := model.Response{
@@ -40,7 +41,7 @@ func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := model.FindUserByEmail(userLogin.Email)
+	user := repo.NewLoginRepo().FindUserByEmail(userLogin.Email)
 
 	token, _ := utils.CreateJWT(os.Getenv("JWT_SECRET"), utils.Payload{
 		Sub:      strconv.Itoa(user.Id),
@@ -66,7 +67,7 @@ func (h *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users := model.GetAllUsers()
+	users := repo.NewUserRepo().GetAllUsers()
 
 	response := model.Response{
 		Message: "Data fetch successfully",
@@ -92,7 +93,7 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	model.StoreUser(user)
+	repo.NewUserRepo().Store(user)
 
 	response := model.Response{
 		Message: "User created successfully",
@@ -110,14 +111,14 @@ func (h *Handler) GetUserById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	productid := r.PathValue("id")
-	id, err := strconv.Atoi(productid)
+	userid := r.PathValue("id")
+	id, err := strconv.Atoi(userid)
 	if err != nil {
 		http.Error(w, "invalid user id", http.StatusBadRequest)
 		return
 	}
 
-	user := model.GetUserById(id)
+	user := repo.NewUserRepo().GetUserById(id)
 	if user.Id == 0 {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
@@ -154,7 +155,7 @@ func (h *Handler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	updatedUser.Id = id
-	model.UpdateUser(id, updatedUser)
+	repo.NewUserRepo().UpdateUserById(id, updatedUser)
 
 	response := model.Response{
 		Message: "User updated successfully",
@@ -178,7 +179,7 @@ func (h *Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid user id", http.StatusBadRequest)
 		return
 	}
-	deleted := model.DeleteUser(id)
+	deleted := repo.NewUserRepo().DeleteUserById(id)
 	if !deleted {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return

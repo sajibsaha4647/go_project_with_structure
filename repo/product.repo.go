@@ -18,7 +18,6 @@ func NewProductRepo() ProductRepo {
 	return &productRepo{}
 }
 
-
 func (p *productRepo) Store(product model.ProductList) []model.ProductList {
 	p.productilst = append(p.productilst, product)
 	return p.productilst
@@ -53,7 +52,7 @@ func (p *productRepo) DeleteProductById(id int) bool {
 	return false
 }
 
-func generateProducts( p *productRepo) {
+func generateProducts(p *productRepo) {
 	p.productilst = append(p.productilst, []model.ProductList{
 		{Id: 1, Title: "Orange", Description: "This was good", Price: "56", ImageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Oranges_-_whole-halved-segment.jpg/500px-Oranges_-_whole-halved-segment.jpg"},
 		{Id: 2, Title: "Orange2", Description: "This was good", Price: "56", ImageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Oranges_-_whole-halved-segment.jpg/500px-Oranges_-_whole-halved-segment.jpg"},
