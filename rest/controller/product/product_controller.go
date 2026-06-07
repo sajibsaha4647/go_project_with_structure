@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"ecommerce/model"
+	"ecommerce/repo"
 	"ecommerce/utils"
 )
 
@@ -32,7 +33,7 @@ func (h *Handler) GetProduct(w http.ResponseWriter, r *http.Request) {
 	response := model.Response{
 		Message: "Data fetch successfully",
 		Status:  http.StatusOK,
-		Data:    model.GetAllProducts(),
+		Data:    repo.NewProductRepo().GetAllProducts(),
 	}
 
 	utils.SendResponse(w, response)
@@ -56,8 +57,8 @@ func (h *Handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newProduct.Id = len(model.GetAllProducts()) + 1
-	model.Store(newProduct)
+	newProduct.Id = len(repo.NewProductRepo().GetAllProducts()) + 1
+	repo.NewProductRepo().Store(newProduct)
 
 	w.WriteHeader(http.StatusCreated)
 
@@ -79,7 +80,7 @@ func (h *Handler) GetProductById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for _, product := range model.GetAllProducts() {
+	for _, product := range repo.NewProductRepo().GetAllProducts() {
 
 		if id == product.Id {
 
@@ -134,7 +135,7 @@ func (h *Handler) UpdateProductById(w http.ResponseWriter, r *http.Request) {
 
 	updatedProduct.Id = id
 
-	result := model.UpdateProductById(id, updatedProduct)
+	result := repo.NewProductRepo().UpdateProductById(id, updatedProduct)
 
 	if result.Id == 0 {
 		response := model.Response{
@@ -172,7 +173,7 @@ func (h *Handler) DeleteProductById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	isDeleted := model.DeleteProductById(id)
+	isDeleted := repo.NewProductRepo().DeleteProductById(id)
 
 	if !isDeleted {
 		response := model.Response{
