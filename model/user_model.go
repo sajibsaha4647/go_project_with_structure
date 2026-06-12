@@ -1,11 +1,11 @@
 package model
 
 type User struct {
-	Id       int    `json:"id"`
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-	UserType string `json:"userType"`
+	Id       int    `json:"id"       db:"id"`
+	Name     string `json:"name"     db:"name"`
+	Email    string `json:"email"    db:"email"`
+	Password string `json:"password" db:"password"`
+	UserType string `json:"userType" db:"user_type"`
 }
 
 var userList []User

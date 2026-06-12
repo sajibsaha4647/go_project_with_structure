@@ -67,7 +67,11 @@ func (h *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users := repo.NewUserRepo().GetAllUsers()
+	users,err := h.userRepo.GetAllUsers()
+	if err != nil {
+		http.Error(w, "Error fetching users", http.StatusInternalServerError)
+		return
+	}
 
 	response := model.Response{
 		Message: "Data fetch successfully",
@@ -93,7 +97,11 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	repo.NewUserRepo().Store(user)
+	_, err = h.userRepo.Store(user)
+	if err != nil {
+		http.Error(w, "Error creating user", http.StatusInternalServerError)
+		return
+	}
 
 	response := model.Response{
 		Message: "User created successfully",
@@ -118,7 +126,7 @@ func (h *Handler) GetUserById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := repo.NewUserRepo().GetUserById(id)
+	user := h.userRepo.GetUserById(id)
 	if user.Id == 0 {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
@@ -155,7 +163,7 @@ func (h *Handler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	updatedUser.Id = id
-	repo.NewUserRepo().UpdateUserById(id, updatedUser)
+	h.userRepo.UpdateUserById(id, updatedUser)
 
 	response := model.Response{
 		Message: "User updated successfully",
@@ -179,7 +187,7 @@ func (h *Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid user id", http.StatusBadRequest)
 		return
 	}
-	deleted := repo.NewUserRepo().DeleteUserById(id)
+	deleted := h.userRepo.DeleteUserById(id)
 	if !deleted {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return

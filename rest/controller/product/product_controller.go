@@ -7,7 +7,6 @@ import (
 	"strconv"
 
 	"ecommerce/model"
-	"ecommerce/repo"
 	"ecommerce/utils"
 )
 
@@ -30,10 +29,16 @@ func (h *Handler) GetProduct(w http.ResponseWriter, r *http.Request) {
 	customHeader := r.Header.Get("sajibsaha")
 	fmt.Println(customHeader)
 
+	products, err := h.repo.GetAllProducts()
+	if err != nil {
+		http.Error(w, "Error fetching products", http.StatusInternalServerError)
+		return
+	}
+
 	response := model.Response{
 		Message: "Data fetch successfully",
 		Status:  http.StatusOK,
-		Data:    repo.NewProductRepo().GetAllProducts(),
+		Data:    products,
 	}
 
 	utils.SendResponse(w, response)
@@ -56,9 +61,14 @@ func (h *Handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Please give me valid json", 400)
 		return
 	}
+	products, error := h.repo.GetAllProducts()
+	if error != nil {
+		http.Error(w, "Error fetching products", http.StatusInternalServerError)
+		return
+	}
 
-	newProduct.Id = len(repo.NewProductRepo().GetAllProducts()) + 1
-	repo.NewProductRepo().Store(newProduct)
+	newProduct.Id = len(products) + 1
+	h.repo.Store(newProduct)
 
 	w.WriteHeader(http.StatusCreated)
 
@@ -79,8 +89,13 @@ func (h *Handler) GetProductById(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid product id", http.StatusBadRequest)
 		return
 	}
+	products, err := h.repo.GetAllProducts()
+	if err != nil {
+		http.Error(w, "Error fetching products", http.StatusInternalServerError)
+		return
+	}
 
-	for _, product := range repo.NewProductRepo().GetAllProducts() {
+	for _, product := range products {
 
 		if id == product.Id {
 
@@ -135,7 +150,11 @@ func (h *Handler) UpdateProductById(w http.ResponseWriter, r *http.Request) {
 
 	updatedProduct.Id = id
 
-	result := repo.NewProductRepo().UpdateProductById(id, updatedProduct)
+	result, err := h.repo.UpdateProductById(id, updatedProduct)
+	if err != nil {
+		http.Error(w, "Error updating product", http.StatusInternalServerError)
+		return
+	}
 
 	if result.Id == 0 {
 		response := model.Response{
@@ -173,7 +192,11 @@ func (h *Handler) DeleteProductById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	isDeleted := repo.NewProductRepo().DeleteProductById(id)
+	isDeleted, err := h.repo.DeleteProductById(id)
+	if err != nil {
+		http.Error(w, "Error deleting product", http.StatusInternalServerError)
+		return
+	}
 
 	if !isDeleted {
 		response := model.Response{

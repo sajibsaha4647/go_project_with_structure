@@ -2,11 +2,14 @@ package config
 
 import (
 	"os"
+
+	"github.com/joho/godotenv"
 )
 
-
 type Config struct {
+	DbName    string
 	Port      string
+	DBPort    string
 	DBHost    string
 	DBUser    string
 	DBPass    string
@@ -14,21 +17,19 @@ type Config struct {
 }
 
 func GetEnv(key string) string {
-	value := os.Getenv(key)
-	if value == "" {
-		return "Not Found"
-	}	
-	return value
+	return os.Getenv(key)
 }
 
-
-func Load() (*Config, error){
+func Load() (*Config, error) {
+	_ = godotenv.Load()
 	cfg := &Config{
-		Port:      GetEnv("PORT",),
-		DBHost:    GetEnv("DB_HOST",),
-		DBUser:    GetEnv("DB_USER", ),
-		DBPass:    GetEnv("DB_PASS", ),
-		JWTSecret: GetEnv("JWT_SECRET",),
+		Port:      GetEnv("PORT"),
+		DBPort:    GetEnv("DB_PORT"),
+		DBHost:    GetEnv("DB_HOST"),
+		DBUser:    GetEnv("DB_USER"),
+		DBPass:    GetEnv("DB_PASSWORD"),
+		JWTSecret: GetEnv("JWT_SECRET"),
+		DbName:    GetEnv("DB_NAME"),
 	}
 	return cfg, nil
 }

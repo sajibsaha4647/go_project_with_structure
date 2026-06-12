@@ -1,19 +1,41 @@
 package servego
 
 import (
+	"ecommerce/config"
+	"ecommerce/infra/db"
+	"ecommerce/repo"
 	"ecommerce/rest"
 	"ecommerce/rest/controller/product"
-	"ecommerce/rest/controller/review"
 	"ecommerce/rest/controller/user"
+	"fmt"
+	"log"
 )
 
 func ServeGo() {
 
-	productHandler := product.NewHandler()
+	cfg, errs := config.Load()
+	if errs != nil {
+		panic(errs)
+	}
 
-	userHandler := user.NewHandler()
+	fmt.Println(cfg.Port)
+	fmt.Println(cfg.JWTSecret)
 
-	reviewHandler := review.NewHandler()
+	dbConn, err := db.ConnectDB(cfg)
+	if err != nil {
+		log.Fatalf("Database connection failed: %v", err)
+	}
+	defer dbConn.Close()
 
-	rest.NewServer(userHandler, productHandler, reviewHandler).Start()
+	userRepository := repo.NewUserRepo(dbConn)
+	productRepository := repo.NewProductRepo(dbConn)
+	// reviewRepository := repo.NewReviewRepo(dbConn)
+
+	productHandler := product.NewHandler(productRepository)
+
+	userHandler := user.NewHandler(userRepository)
+
+	// reviewHandler := review.NewHandler(reviewRepository)
+
+	rest.NewServer(userHandler, productHandler).Start(cfg)
 }

@@ -18,22 +18,15 @@ type Server struct {
 
 func NewServer(userHandler *user.Handler,
 	productHandler *product.Handler,
-	reviewHandler *review.Handler) *Server {
+	) *Server {
 	return &Server{
 		userHandler:    userHandler,
 		productHandler: productHandler,
-		reviewHandler:  reviewHandler,
 	}
 }
 
-func (s *Server) Start() {
-	cfg, errs := config.Load()
-	if errs != nil {
-		panic(errs)
-	}
-
-	fmt.Println(cfg.Port)
-	fmt.Println(cfg.JWTSecret)
+func (s *Server) Start(cnf *config.Config) {
+	
 
 	setMiddleware := middleware.NewMiddlewareManager()
 
@@ -42,16 +35,16 @@ func (s *Server) Start() {
 	mux := http.NewServeMux()
 
 	s.userHandler.SetRoutesUser(mux, setMiddleware)
-	s.productHandler.SetRoutesProduct(cfg, mux, setMiddleware)
+	s.productHandler.SetRoutesProduct(cnf, mux, setMiddleware)
 	s.reviewHandler.ReviewRoutes(mux, setMiddleware)
 
 	// routes.SetRoutes(mux, setMiddleware)
 
 	muxWraped := setMiddleware.Apply(mux)
 
-	fmt.Println("server running on " + cfg.Port)
+	fmt.Println("server running on " + cnf.Port)
 
-	err := http.ListenAndServe(":"+cfg.Port, muxWraped)
+	err := http.ListenAndServe(":"+cnf.Port, muxWraped)
 
 	if err != nil {
 		fmt.Println(err, "error from server ")

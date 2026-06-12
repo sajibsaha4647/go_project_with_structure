@@ -1,7 +1,15 @@
 package product
 
-type Handler struct {}
+import (
+	"ecommerce/repo"
+)
 
-func NewHandler() *Handler {
-	return &Handler{}
+type Handler struct {
+	repo repo.ProductRepo
+}
+
+func NewHandler(repo repo.ProductRepo) *Handler {
+	return &Handler{
+		repo: repo,
+	}
 }
