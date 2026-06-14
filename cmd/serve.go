@@ -27,6 +27,10 @@ func ServeGo() {
 	}
 	defer dbConn.Close()
 
+	if err := db.RunMigrations(cfg); err != nil {
+		log.Fatalf("Failed to run migrations: %v", err)
+	}
+
 	userRepository := repo.NewUserRepo(dbConn)
 	productRepository := repo.NewProductRepo(dbConn)
 	// reviewRepository := repo.NewReviewRepo(dbConn)
