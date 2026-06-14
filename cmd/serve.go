@@ -33,11 +33,11 @@ func ServeGo() {
 
 	userRepository := repo.NewUserRepo(dbConn)
 	productRepository := repo.NewProductRepo(dbConn)
-	// reviewRepository := repo.NewReviewRepo(dbConn)
+	loginRepository := repo.NewLoginRepo(dbConn)
 
 	productHandler := product.NewHandler(productRepository)
 
-	userHandler := user.NewHandler(userRepository)
+	userHandler := user.NewHandler(userRepository, loginRepository)
 
 	// reviewHandler := review.NewHandler(reviewRepository)
 

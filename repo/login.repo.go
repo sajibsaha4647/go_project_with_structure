@@ -1,32 +1,43 @@
 package repo
 
-import "ecommerce/model"
+import (
+	"ecommerce/model"
+	"fmt"
+
+	"github.com/jmoiron/sqlx"
+)
 
 type LoginRepo interface {
-	FindUserByEmail(email string) model.User
-	ValidateLogin(userLogin model.UserLogin) bool
+	FindUserByEmail(email string) (*model.User, error)
+	ValidateLogin(userLogin model.User) (bool, error)
 }
 
 type loginRepo struct {
-	userList []model.User
+	dbConnection *sqlx.DB
 }
 
-func NewLoginRepo() LoginRepo {
-	return &loginRepo{}
-}
-func (l *loginRepo) FindUserByEmail(email string) model.User {
-	for _, user := range l.userList {
-		if user.Email == email {	
-			return user
-		}
+func NewLoginRepo(dbConnection *sqlx.DB) LoginRepo {
+	return &loginRepo{
+		dbConnection: dbConnection,
 	}
-	return model.User{}
 }
+func (l *loginRepo) FindUserByEmail(email string) (*model.User, error) {
+	var user model.User
+	err := l.dbConnection.Get(&user, "SELECT * FROM users WHERE email = $1", email)
+	if err != nil {
+		return nil, fmt.Errorf("user not found")
+	}
+	return &user, nil
+}
+func (l *loginRepo) ValidateLogin(userLogin model.User) (bool, error) {
+	user, err := l.FindUserByEmail(userLogin.Email)
+	if err != nil {
+		return false, err
+	}
 
-func (l *loginRepo) ValidateLogin(userLogin model.UserLogin) bool {
-	user := l.FindUserByEmail(userLogin.Email)
-	if user.Id != 0 && user.Password == userLogin.Password {
-		return true
+	if user.Password == userLogin.Password {
+		return true, nil
 	}
-	return false
+
+	return false, nil
 }

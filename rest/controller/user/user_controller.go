@@ -2,7 +2,6 @@ package user
 
 import (
 	"ecommerce/model"
-	"ecommerce/repo"
 	"ecommerce/utils"
 	"encoding/json"
 	"fmt"
@@ -18,7 +17,7 @@ func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Please go with post method", 400)
 		return
 	}
-	var userLogin model.UserLogin
+	var userLogin model.User
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&userLogin)
 	if err != nil {
@@ -26,7 +25,11 @@ func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	isValid := repo.NewLoginRepo().ValidateLogin(userLogin)
+	isValid, err := h.loginRepo.ValidateLogin(userLogin)
+	if err != nil {
+		http.Error(w, "Error validating login", 400)
+		return
+	}
 	fmt.Println("Login attempt for email:", userLogin.Email, "Valid:", isValid)
 	if !isValid {
 		response := model.Response{
@@ -41,7 +44,11 @@ func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := repo.NewLoginRepo().FindUserByEmail(userLogin.Email)
+	user, err := h.loginRepo.FindUserByEmail(userLogin.Email)
+	if err != nil {
+		http.Error(w, "Error finding user", 400)
+		return
+	}
 
 	token, _ := utils.CreateJWT(os.Getenv("JWT_SECRET"), utils.Payload{
 		Sub:      strconv.Itoa(user.Id),
@@ -67,7 +74,7 @@ func (h *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users,err := h.userRepo.GetAllUsers()
+	users, err := h.userRepo.GetAllUsers()
 	if err != nil {
 		http.Error(w, "Error fetching users", http.StatusInternalServerError)
 		return
