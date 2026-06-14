@@ -3,8 +3,6 @@ package db
 import (
 	"ecommerce/config"
 	"fmt"
-	"os"
-	"path/filepath"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -12,6 +10,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
+
 func getConnectionString(cnf *config.Config) string {
 	return fmt.Sprintf(
 		"user=%s password=%s dbname=%s port=%s host=%s sslmode=disable",
