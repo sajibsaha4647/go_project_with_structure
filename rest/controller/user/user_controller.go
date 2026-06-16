@@ -1,10 +1,9 @@
 package user
 
 import (
-	"ecommerce/model"
+	"ecommerce/domain"
 	"ecommerce/utils"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
 	"strconv"
@@ -17,36 +16,24 @@ func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Please go with post method", 400)
 		return
 	}
-	var userLogin model.User
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&userLogin)
-	if err != nil {
+
+	var req domain.User
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid JSON", 400)
 		return
 	}
 
-	isValid, err := h.loginRepo.ValidateLogin(userLogin)
+	user, valid, err := h.service.Login(req.Email, req.Password)
 	if err != nil {
 		http.Error(w, "Error validating login", 400)
 		return
 	}
-	fmt.Println("Login attempt for email:", userLogin.Email, "Valid:", isValid)
-	if !isValid {
-		response := model.Response{
-			Message: "Login Invalid credentials",
+	if !valid {
+		utils.SendResponse(w, domain.Response{
+			Message: "Invalid credentials",
 			Status:  400,
-			Data: model.UserLogin{
-				Email: userLogin.Email,
-				Token: "",
-			},
-		}
-		utils.SendResponse(w, response)
-		return
-	}
-
-	user, err := h.loginRepo.FindUserByEmail(userLogin.Email)
-	if err != nil {
-		http.Error(w, "Error finding user", 400)
+			Data:    domain.UserLogin{Email: req.Email},
+		})
 		return
 	}
 
@@ -54,17 +41,16 @@ func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		Sub:      strconv.Itoa(user.Id),
 		Name:     user.Name,
 		Email:    user.Email,
-		UserType: "Owner",
+		UserType: user.UserType,
 		Iat:      time.Now().Unix(),
 		Exp:      time.Now().Add(24 * time.Hour).Unix(),
 	})
 
-	response := model.Response{
+	utils.SendResponse(w, domain.Response{
 		Message: "Login successful",
 		Status:  http.StatusOK,
 		Data:    token,
-	}
-	utils.SendResponse(w, response)
+	})
 }
 
 func (h *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
@@ -74,19 +60,17 @@ func (h *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users, err := h.userRepo.GetAllUsers()
+	users, err := h.service.GetAllUsers()
 	if err != nil {
 		http.Error(w, "Error fetching users", http.StatusInternalServerError)
 		return
 	}
 
-	response := model.Response{
+	utils.SendResponse(w, domain.Response{
 		Message: "Data fetch successfully",
 		Status:  http.StatusOK,
 		Data:    users,
-	}
-	utils.SendResponse(w, response)
-
+	})
 }
 
 func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
@@ -96,27 +80,23 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var user model.User
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&user)
-	if err != nil {
+	var u domain.User
+	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
 		http.Error(w, "Invalid JSON", 400)
 		return
 	}
 
-	_, err = h.userRepo.Store(user)
+	created, err := h.service.CreateUser(u)
 	if err != nil {
 		http.Error(w, "Error creating user", http.StatusInternalServerError)
 		return
 	}
 
-	response := model.Response{
+	utils.SendResponse(w, domain.Response{
 		Message: "User created successfully",
 		Status:  http.StatusCreated,
-		Data:    user,
-	}
-	utils.SendResponse(w, response)
-
+		Data:    created,
+	})
 }
 
 func (h *Handler) GetUserById(w http.ResponseWriter, r *http.Request) {
@@ -126,26 +106,23 @@ func (h *Handler) GetUserById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userid := r.PathValue("id")
-	id, err := strconv.Atoi(userid)
+	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		http.Error(w, "invalid user id", http.StatusBadRequest)
 		return
 	}
 
-	user := h.userRepo.GetUserById(id)
-	if user.Id == 0 {
+	u := h.service.GetUserById(id)
+	if u == nil {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
 
-	response := model.Response{
+	utils.SendResponse(w, domain.Response{
 		Message: "User found",
 		Status:  http.StatusOK,
-		Data:    user,
-	}
-	utils.SendResponse(w, response)
-
+		Data:    u,
+	})
 }
 
 func (h *Handler) UpdateUser(w http.ResponseWriter, r *http.Request) {
@@ -154,31 +131,25 @@ func (h *Handler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Please go with put method", 400)
 		return
 	}
-	utils.HandlePreflightReq(w, r)
-	userId := r.PathValue("id")
-	id, err := strconv.Atoi(userId)
+
+	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		http.Error(w, "invalid user id", http.StatusBadRequest)
 		return
 	}
-	var updatedUser model.User
-	decoder := json.NewDecoder(r.Body)
-	err = decoder.Decode(&updatedUser)
-	if err != nil {
+
+	var u domain.User
+	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
 		http.Error(w, "Invalid JSON", 400)
 		return
 	}
 
-	updatedUser.Id = id
-	h.userRepo.UpdateUserById(id, updatedUser)
-
-	response := model.Response{
+	result := h.service.UpdateUserById(id, u)
+	utils.SendResponse(w, domain.Response{
 		Message: "User updated successfully",
 		Status:  http.StatusOK,
-		Data:    updatedUser,
-	}
-	utils.SendResponse(w, response)
-
+		Data:    result,
+	})
 }
 
 func (h *Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
@@ -187,23 +158,21 @@ func (h *Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Please go with delete method", 400)
 		return
 	}
-	utils.HandlePreflightReq(w, r)
-	userId := r.PathValue("id")
-	id, err := strconv.Atoi(userId)
+
+	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		http.Error(w, "invalid user id", http.StatusBadRequest)
 		return
 	}
-	deleted := h.userRepo.DeleteUserById(id)
-	if !deleted {
+
+	if !h.service.DeleteUserById(id) {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
-	response := model.Response{
+
+	utils.SendResponse(w, domain.Response{
 		Message: "User deleted successfully",
 		Status:  http.StatusOK,
 		Data:    nil,
-	}
-	utils.SendResponse(w, response)
-
+	})
 }

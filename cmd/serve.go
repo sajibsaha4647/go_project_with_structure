@@ -6,13 +6,13 @@ import (
 	"ecommerce/repo"
 	"ecommerce/rest"
 	"ecommerce/rest/controller/product"
-	"ecommerce/rest/controller/user"
+	userctrl "ecommerce/rest/controller/user"
+	"ecommerce/user"
 	"fmt"
 	"log"
 )
 
 func ServeGo() {
-
 	cfg, errs := config.Load()
 	if errs != nil {
 		panic(errs)
@@ -31,15 +31,12 @@ func ServeGo() {
 		log.Fatalf("Failed to run migrations: %v", err)
 	}
 
-	userRepository := repo.NewUserRepo(dbConn)
+	userRepo := user.NewRepository(dbConn)
+	userService := user.NewService(userRepo)
+	userHandler := userctrl.NewHandler(userService)
+
 	productRepository := repo.NewProductRepo(dbConn)
-	loginRepository := repo.NewLoginRepo(dbConn)
-
 	productHandler := product.NewHandler(productRepository)
-
-	userHandler := user.NewHandler(userRepository, loginRepository)
-
-	// reviewHandler := review.NewHandler(reviewRepository)
 
 	rest.NewServer(userHandler, productHandler).Start(cfg)
 }

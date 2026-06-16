@@ -1,15 +1,11 @@
 package user
 
-import "ecommerce/repo"
+import userservice "ecommerce/user"
 
 type Handler struct {
-	userRepo repo.UserRepo
-	loginRepo repo.LoginRepo
+	service userservice.Service
 }
 
-func NewHandler(userRepo repo.UserRepo, loginRepo repo.LoginRepo) *Handler {
-	return &Handler{
-		userRepo: userRepo,
-		loginRepo: loginRepo,
-	}
+func NewHandler(service userservice.Service) *Handler {
+	return &Handler{service: service}
 }
