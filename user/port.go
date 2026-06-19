@@ -10,3 +10,4 @@ type Repository interface {
 	DeleteUserById(id int) bool
 	FindUserByEmail(email string) *domain.User
 }
+ 

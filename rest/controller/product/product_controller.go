@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"ecommerce/domain"
 	"ecommerce/model"
 	"ecommerce/utils"
 )
@@ -29,7 +30,7 @@ func (h *Handler) GetProduct(w http.ResponseWriter, r *http.Request) {
 	customHeader := r.Header.Get("sajibsaha")
 	fmt.Println(customHeader)
 
-	products, err := h.repo.GetAllProducts()
+	products, err := h.service.GetProduct()
 	if err != nil {
 		http.Error(w, "Error fetching products", http.StatusInternalServerError)
 		return
@@ -53,7 +54,7 @@ func (h *Handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 
 	utils.HandlePreflightReq(w, r)
 
-	var newProduct model.ProductList
+	var newProduct domain.ProductList
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&newProduct)
 	if err != nil {
@@ -61,14 +62,14 @@ func (h *Handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Please give me valid json", 400)
 		return
 	}
-	products, error := h.repo.GetAllProducts()
+	products, error := h.service.GetProduct()
 	if error != nil {
 		http.Error(w, "Error fetching products", http.StatusInternalServerError)
 		return
 	}
 
 	newProduct.Id = len(products) + 1
-	h.repo.Store(newProduct)
+	h.service.CreateProduct(newProduct)
 
 	w.WriteHeader(http.StatusCreated)
 
@@ -89,7 +90,7 @@ func (h *Handler) GetProductById(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid product id", http.StatusBadRequest)
 		return
 	}
-	products, err := h.repo.GetAllProducts()
+	products, err := h.service.GetProduct()
 	if err != nil {
 		http.Error(w, "Error fetching products", http.StatusInternalServerError)
 		return
@@ -139,7 +140,7 @@ func (h *Handler) UpdateProductById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var updatedProduct model.ProductList
+	var updatedProduct domain.ProductList
 	decoder := json.NewDecoder(r.Body)
 	err = decoder.Decode(&updatedProduct)
 	if err != nil {
@@ -150,7 +151,7 @@ func (h *Handler) UpdateProductById(w http.ResponseWriter, r *http.Request) {
 
 	updatedProduct.Id = id
 
-	result, err := h.repo.UpdateProductById(id, updatedProduct)
+	result, err := h.service.UpdateProductById(id, updatedProduct)
 	if err != nil {
 		http.Error(w, "Error updating product", http.StatusInternalServerError)
 		return
@@ -192,7 +193,7 @@ func (h *Handler) DeleteProductById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	isDeleted, err := h.repo.DeleteProductById(id)
+	isDeleted, err := h.service.DeleteProductById(id)
 	if err != nil {
 		http.Error(w, "Error deleting product", http.StatusInternalServerError)
 		return
