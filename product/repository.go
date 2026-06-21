@@ -28,8 +28,6 @@ func (p *productRepository) Store(product domain.ProductList) (*domain.ProductLi
 }
 func (p *productRepository) GetAllProducts(page, limit int) ([]domain.ProductList, error) {
 
-	
-
 	var products []domain.ProductList
 	query := `SELECT id, title, description, price, image_url FROM products`
 	err := p.db.Select(&products, query)
