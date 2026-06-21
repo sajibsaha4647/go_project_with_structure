@@ -3,9 +3,9 @@ package servego
 import (
 	"ecommerce/config"
 	"ecommerce/infra/db"
-	"ecommerce/repo"
+	"ecommerce/product"
 	"ecommerce/rest"
-	"ecommerce/rest/controller/product"
+	pdCtrl "ecommerce/rest/controller/product"
 	userctrl "ecommerce/rest/controller/user"
 	"ecommerce/user"
 	"fmt"
@@ -35,8 +35,9 @@ func ServeGo() {
 	userService := user.NewService(userRepo)
 	userHandler := userctrl.NewHandler(userService)
 
-	productRepository := repo.NewProductRepo(dbConn)
-	productHandler := product.NewHandler(productRepository)
+	productRepo := product.NewProductRepository(dbConn)
+	productService := product.NewService(productRepo)
+	productHandler := pdCtrl.NewHandler(productService)
 
 	rest.NewServer(userHandler, productHandler).Start(cfg)
 }
