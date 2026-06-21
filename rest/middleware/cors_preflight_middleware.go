@@ -10,10 +10,9 @@ func CorsAndPreflightMiddleware(mux http.Handler) http.Handler {
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type , sajibsaha")
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
-		w.WriteHeader(http.StatusAccepted)
 
 		if r.Method == "OPTIONS" {
-			w.WriteHeader(200)
+			w.WriteHeader(http.StatusOK)
 			return
 		}
 

@@ -35,13 +35,8 @@ func (h *Handler) GetProduct(w http.ResponseWriter, r *http.Request) {
 	pageStr := reqQuery.Get("page")
 	pageLimitStr :=reqQuery.Get("limit")
 
-	page,err := strconv.ParseInt(pageStr,10,32)
-	if err != nil{
-		http.Error(w, "Error fetching products", http.StatusInternalServerError)
-		return
-	}
-
-	limit,_ :=strconv.ParseInt(pageLimitStr,10,32)
+	page, _ := strconv.ParseInt(pageStr, 10, 32)
+	limit, _ := strconv.ParseInt(pageLimitStr, 10, 32)
 
 	if(page == 0){
 		page = 1
@@ -54,14 +49,31 @@ func (h *Handler) GetProduct(w http.ResponseWriter, r *http.Request) {
 
 	products, err := h.service.GetProduct(int(page),int(limit))
 	if err != nil {
+		fmt.Println("GetProduct error:", err)
 		http.Error(w, "Error fetching products", http.StatusInternalServerError)
 		return
+	}
+
+	totalItems, err := h.service.RowCount()
+	if err != nil {
+		fmt.Println("RowCount error:", err)
+		http.Error(w, "Error fetching product count", http.StatusInternalServerError)
+		return
+	}
+
+	newDataMap := make(map[string]any)
+	newDataMap["products"] = products
+	newDataMap["pagination"] = domain.Pagination{
+		Page:       page,
+		Limit:      limit,
+		TotalItems: totalItems,
+		TotalPages: (totalItems + limit - 1) / limit, // Calculate total pages
 	}
 
 	response := model.Response{
 		Message: "Data fetch successfully",
 		Status:  http.StatusOK,
-		Data:    products,
+		Data:    newDataMap,
 	}
 
 	utils.SendResponse(w, response)
@@ -87,6 +99,7 @@ func (h *Handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 
 	created, err := h.service.CreateProduct(newProduct)
 	if err != nil {
+		fmt.Println("CreateProduct error:", err)
 		http.Error(w, "Error creating product", http.StatusInternalServerError)
 		return
 	}

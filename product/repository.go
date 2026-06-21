@@ -10,14 +10,14 @@ type productRepository struct {
 	db *sqlx.DB
 }
 
-func NewProductRepository(db *sqlx.DB) productRepository {
-	return productRepository{
+func NewProductRepository(db *sqlx.DB) ProductNewRepo {
+	return &productRepository{
 		db: db,
 	}
 }
 
 func (p *productRepository) Store(product domain.ProductList) (*domain.ProductList, error) {
-	query := `INSERT INTO products (title, description, price, image_url) VALUES (:title, :description, :price, :image_url) RETURNING id`
+	query := `INSERT INTO products (title, description, price, image_url) VALUES ($1, $2, $3, $4) RETURNING id`
 	var storedProduct domain.ProductList
 	err := p.db.QueryRow(query, product.Title, product.Description, product.Price, product.ImageUrl).Scan(&storedProduct.Id)
 	if err != nil {
@@ -26,19 +26,28 @@ func (p *productRepository) Store(product domain.ProductList) (*domain.ProductLi
 
 	return &storedProduct, nil
 }
-func (p *productRepository) GetAllProducts(page, limit int) ([]domain.ProductList, error) {
+func (p *productRepository) GetProduct(page, limit int) ([]domain.ProductList, error) {
+	offset := (page - 1) * limit
 
 	var products []domain.ProductList
-	query := `SELECT id, title, description, price, image_url FROM products`
-	err := p.db.Select(&products, query)
+
+	query := `
+		SELECT id, title, description, price, image_url
+		FROM products
+		ORDER BY id
+		LIMIT $1 OFFSET $2
+	`
+
+	err := p.db.Select(&products, query, limit, offset)
 	if err != nil {
 		return nil, err
 	}
+
 	return products, nil
 }
 func (p *productRepository) GetProductById(id int) (*domain.ProductList, error) {
 	var product domain.ProductList
-	query := `SELECT id, title, description, price, image_url FROM products WHERE id = ?`
+	query := `SELECT id, title, description, price, image_url FROM products WHERE id = $1`
 	err := p.db.QueryRow(query, id).Scan(&product.Id, &product.Title, &product.Description, &product.Price, &product.ImageUrl)
 	if err != nil {
 		return &domain.ProductList{}, err
@@ -59,7 +68,7 @@ func (p *productRepository) UpdateProductById(id int, updatedProduct domain.Prod
 	// 	}
 	// }
 	// return model.ProductList{}
-	query := `UPDATE products SET title = ?, description = ?, price = ?, image_url = ? WHERE id = ?`
+	query := `UPDATE products SET title = $1, description = $2, price = $3, image_url = $4 WHERE id = $5`
 	_, err := p.db.Exec(query, updatedProduct.Title, updatedProduct.Description, updatedProduct.Price, updatedProduct.ImageUrl, id)
 	if err != nil {
 		return nil, err
@@ -74,7 +83,7 @@ func (p *productRepository) DeleteProductById(id int) (bool, error) {
 	// 	}
 	// }
 	// return false
-	query := `DELETE FROM products WHERE id = ?`
+	query := `DELETE FROM products WHERE id = $1`
 	result, err := p.db.Exec(query, id)
 	if err != nil {
 		return false, err
@@ -84,4 +93,14 @@ func (p *productRepository) DeleteProductById(id int) (bool, error) {
 		return false, err
 	}
 	return rowsAffected > 0, nil
+}
+
+func (p *productRepository) RowCount() (int64, error) {
+	var count int64
+	query := `SELECT COUNT(*) FROM products`
+	err := p.db.QueryRow(query).Scan(&count)	
+if err != nil {
+		return 0, err
+	}
+	return count, nil
 }
