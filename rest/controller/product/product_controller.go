@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"sync"
 
 	"ecommerce/domain"
 	"ecommerce/model"
@@ -33,26 +34,27 @@ func (h *Handler) GetProduct(w http.ResponseWriter, r *http.Request) {
 	reqQuery := r.URL.Query()
 
 	pageStr := reqQuery.Get("page")
-	pageLimitStr :=reqQuery.Get("limit")
+	pageLimitStr := reqQuery.Get("limit")
 
 	page, _ := strconv.ParseInt(pageStr, 10, 32)
 	limit, _ := strconv.ParseInt(pageLimitStr, 10, 32)
 
-	if(page == 0){
+	if page == 0 {
 		page = 1
 	}
 
-	if(limit == 0){
+	if limit == 0 {
 		limit = 10
 	}
 
-
-	products, err := h.service.GetProduct(int(page),int(limit))
+	products, err := h.service.GetProduct(int(page), int(limit))
 	if err != nil {
 		fmt.Println("GetProduct error:", err)
 		http.Error(w, "Error fetching products", http.StatusInternalServerError)
 		return
 	}
+
+	var wg sync.WaitGroup
 
 	totalItems, err := h.service.RowCount()
 	if err != nil {
@@ -60,6 +62,17 @@ func (h *Handler) GetProduct(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error fetching product count", http.StatusInternalServerError)
 		return
 	}
+
+	wg.Add(1)
+	go func() {
+		_, err := h.service.RowCount()
+		if err != nil {
+			fmt.Println("RowCount error:", err)
+			http.Error(w, "Error fetching product count", http.StatusInternalServerError)
+			return
+		}
+		wg.Done() //wg.Add(-1)
+	}()
 
 	newDataMap := make(map[string]any)
 	newDataMap["products"] = products
@@ -75,6 +88,8 @@ func (h *Handler) GetProduct(w http.ResponseWriter, r *http.Request) {
 		Status:  http.StatusOK,
 		Data:    newDataMap,
 	}
+
+	wg.Wait()
 
 	utils.SendResponse(w, response)
 }
